@@ -12,7 +12,7 @@ import random
 import re
 
 # ==================== НАСТРОЙКИ ====================
-TOKEN = '8703891124:AAGYfu1MsclMc8e4ulVOTdNy-j1TbJN3CDc'  # Замени на свой токен от @BotFather
+TOKEN = '8796516711:AAEQ9Q9lPTlO0ZJZ9NUpo1K8GXsWDyDAKUw'  # Замени на свой токен от @BotFather
 bot = telebot.TeleBot(TOKEN)
 
 # Хранилище выбранных персонажей для каждого пользователя

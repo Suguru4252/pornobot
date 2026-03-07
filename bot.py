@@ -312,6 +312,7 @@ def handle_message(message):
 @bot.message_handler(commands=['help'])
 def help_command(message):
     """Справка по командам"""
+    chat_id = message.chat.id
     help_text = (
         "🔞 *Команды бота:*\n"
         "/start - Начать и выбрать персонажа\n"
@@ -323,10 +324,10 @@ def help_command(message):
         "Чем больше ключевых слов (секс, член, попа, кончить и т.д.), "
         "тем грязнее будут ответы!\n\n"
         "*Примеры:*\n"
-        "• привет\n"
-        • как дела\n"
-        "• хочу секс\n"
-        "• давай поиграем"
+        "- привет\n"
+        "- как дела\n"
+        "- хочу секс\n"
+        "- давай поиграем"
     )
     bot.send_message(chat_id, help_text, parse_mode="Markdown")
 
@@ -350,6 +351,7 @@ def change_character(message):
 @bot.message_handler(commands=['info'])
 def info_command(message):
     """Информация о боте"""
+    chat_id = message.chat.id
     info_text = (
         "🤖 *О боте:*\n"
         "Версия: 1.0\n"

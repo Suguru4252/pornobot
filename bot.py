@@ -1,239 +1,210 @@
 """
-Telegram бот для взрослых (18+) - МЕГА ПОШЛАЯ ВЕРСИЯ
+Telegram бот для взрослых (18+) - МЕГА ВЕРСИЯ С ЧАТОМ
 Функции:
-- Выбор персонажа (девушка/парень)
-- Виртуальный секс с подсчетом очков возбуждения
-- 20+ грязных действий
-- Команда /stop для остановки диалога
+- 4 персонажа для виртуального секса (девушка/парень/гей/лесби)
+- ОНЛАЙН ЧАТ с разными комнатами (гей/лесби/микс/все)
+- Анонимное общение, фото, видео, голосовые
+- Виртуальный секс с подсчетом возбуждения
 """
 
 import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 import random
 import re
+import time
+from datetime import datetime
 
 # ==================== НАСТРОЙКИ ====================
 TOKEN = '8442213004:AAFgM1lchfhZmh5SxzrumH9nCR2TQzvCEos'
 bot = telebot.TeleBot(TOKEN)
 
-# Хранилище выбранных персонажей для каждого пользователя
-user_character = {}
-
-# ==================== НОВАЯ МЕГА ПОШЛАЯ ФУНКЦИЯ ====================
-# Словарь грязных действий для виртуального секса
-sex_actions = {
-    'male': {
-        'член': [
-            '🍆 Я достаю свой твердый член и трусь им о твои половые губы...',
-            '🍆 Мой член пульсирует у входа в твою киску, головка уже мокрая от твоих соков...',
-            '🍆 Я беру твой член в рот и делаю глубокий минет, облизывая головку языком...',
-            '🍆 Ты чувствуешь как мой член входит в тебя? Он такой большой, что растягивает твою дырочку...',
-            '🍆 Я кончаю тебе на лицо, горячая сперма заливает твои глаза и губы...'
-        ],
-        'палец': [
-            '👆 Я ввожу палец в твою мокрую киску и массирую клитор большим пальцем...',
-            '👆 Два пальца глубоко в тебе, я чувствую как твои стенки сжимаются...',
-            '👆 Я тру твой клитор пальцами, быстро-быстро, пока ты не начинаешь дрожать...',
-            '👆 Мои пальцы пахнут тобой, дай я оближу их после того как был в тебе...'
-        ],
-        'язык': [
-            '👅 Я раздвигаю твои ноги и погружаю язык в твою сладкую киску...',
-            '👅 Мой язык вылизывает тебя до последней капельки, ты вся течешь...',
-            '👅 Я кусаю твой клитор губами и дразню его языком, ты стонешь...',
-            '👅 Я лижу твою попку, проникая языком глубоко внутрь...'
-        ],
-        'рак': [
-            '🐕 Повернись раком, я вхожу в тебя сзади, держа за бедра...',
-            '🐕 Я трахаю тебя раком, мои яйца шлепаются о твою попку...',
-            '🐕 Ты стоишь раком, а я одной рукой мну твои сиськи, другой держу за волосы...'
-        ],
-        'сосать': [
-            '👄 Я беру твой член в рот и сосу так глубоко, что он касается горла...',
-            '👄 Ты кончаешь мне в рот, и я глотаю всю сперму без остатка...',
-            '👄 Я облизываю твои яйца, а потом снова беру член в рот...'
-        ],
-        'кончить': [
-            '💦 Я кончаю глубоко в твою киску, сперма заливает матку...',
-            '💦 Мы кончаем вместе, ты сжимаешь мой член внутри себя...',
-            '💦 Я кончаю на твои сиськи, сперма стекает по животу...'
-        ]
-    },
-    'female': {
-        'киска': [
-            '🌸 Моя киска мокрая и ждет твой член, войди в меня...',
-            '🌸 Я трусь клитором о твой член, намазывая твою головку своими соками...',
-            '🌸 Мои половые губы раскрыты, я готова принять тебя...'
-        ],
-        'сосать': [
-            '👄 Я беру твой член в рот и делаю глубокий минет, пока ты не кончаешь...',
-            '👄 Я облизываю твою головку и играю с уздечкой языком...',
-            '👄 Ты кончаешь мне в рот, я глотаю все и облизываю губы...'
-        ],
-        'палец': [
-            '👆 Я вожу пальцем по клитору, пока ты трахаешь меня...',
-            '👆 Я сама ласкаю себя пальцами, пока ты смотришь...',
-            '👆 Два пальца в киске, я почти кончаю...'
-        ],
-        'раком': [
-            '🐕 Я встаю раком и отставляю попку, войди в меня сзади...',
-            '🐕 Ты трахаешь меня раком, я громко стону и прошу еще...'
-        ],
-        'кончить': [
-            '💦 Я кончаю на твой член, заливая его своими соками...',
-            '💦 Мы кончаем вместе, я сжимаю тебя внутри...'
-        ]
-    }
-}
-
-# Уровни возбуждения
-arousal_levels = [
-    "😈 Ты только начала возбуждаться...",
-    "🔥 Уже горячо, киска становится мокрой...",
-    "💦 Ты вся течешь, еще немного и кончишь...",
-    "🌊 Ты на грани, еще чуть-чуть...",
-    "💥 ТЫ КОНЧАЕШЬ! Сильно и глубоко!"
-]
-
-# ==================== СЧЕТЧИК ВОЗБУЖДЕНИЯ ====================
+# ==================== ХРАНИЛИЩА ДАННЫХ ====================
+# Для виртуального секса
+user_character = {}  # 'girl', 'boy', 'gay', 'lesbian'
 user_arousal = {}  # {chat_id: {'level': 0, 'actions': []}}
 
-# ==================== БАЗЫ ОТВЕТОВ ====================
-# Ответы для парня
-boy_responses = {
+# ==================== НОВОЕ: ОНЛАЙН ЧАТ ====================
+# Комнаты чата
+CHAT_ROOMS = {
+    'gay': '🏳️‍🌈 Гей чат (только парни)',
+    'lesbian': '👩‍❤️‍👩 Лесби чат (только девушки)',
+    'mixed': '💑 Смешанный чат (парни + девушки)',
+    'everyone': '🌍 Общий чат (все подряд)'
+}
+
+# Пользователи в чатах: {room: {user_id: {'username': '...', 'gender': '...'}}}
+chat_users = {
+    'gay': {},
+    'lesbian': {},
+    'mixed': {},
+    'everyone': {}
+}
+
+# История сообщений в чатах (последние 50 сообщений)
+chat_history = {
+    'gay': [],
+    'lesbian': [],
+    'mixed': [],
+    'everyone': []
+}
+
+# Временные пары для приватного чата (1-на-1)
+private_pairs = {}  # {user1: user2, user2: user1}
+
+# ==================== НОВЫЕ ПЕРСОНАЖИ: ГЕЙ И ЛЕСБИ ====================
+gay_responses = {
     'привет': [
-        'Здарова, шлюшка. Я уже встал на тебя, смотрю.',
-        'Привет, киска. Давно тебя не драли?',
-        'Привет, раздвигай ножки',
-        'Здарова, хочешь мой член?',
-        'О, привет, моя маленькая развратница, я уже готов тебя трахать'
+        'Привет, сладкий. Я уже готов встать раком...',
+        'Здарова, парень. Хочешь мой член?',
+        'Привет, красавчик. Раздевайся давай...',
+        'Ооо, привет, я уже голый, жду тебя...'
     ],
     'как дела': [
-        'Стояк уже час, как думаешь, как дела?',
-        'Член в руке, представляю как трахаю тебя',
-        'Хорошо, только яйца болят, спустить бы',
-        'Возбужденный, жду когда ты отсосешь',
-        'Дела отлично, член стоит как никогда'
-    ],
-    'секс': [
-        'Сейчас бы завалить тебя на кровать и иметь жестко',
-        'Я трахну тебя так, что ноги будут дрожать',
-        'Выебу тебя во все дыры',
-        'Жесткий секс, глубокие выпады, ты кончаешь',
-        'Я буду трахать тебя так сильно, что ты забудешь свое имя'
+        'Член стоит, жду когда ты его возьмешь в рот...',
+        'Хорошо, только яйца болят, спустить бы в тебя...',
+        'Возбужденный, жду когда ты войдешь в меня...',
+        'Отлично, только попка скучает по члену...'
     ],
     'член': [
-        'Соси его глубже, не стесняйся, удавись немного',
-        'Хочешь попробовать мой член? Он сладкий, когда с моей спермой',
-        'Какой у тебя ротик, сейчас я его трахну',
-        'Бери в рот, и смотри мне в глаза',
-        'Мой член твердый как сталь, только для тебя'
+        'Соси мой член, глубже, в самое горло...',
+        'Какой у тебя большой, войди в меня...',
+        'Дай я возьму твой член в рот и оближу головку...',
+        'Я кончу на твой член, залью его спермой...'
     ],
     'попа': [
-        'Раздвинь свои булочки, я вхожу',
-        'Какая у тебя упругая попка, сейчас я её отшлепаю',
-        'Покажи свою дырочку, я войду туда',
-        'Твоя попка такая узкая, но я войду',
-        'Я раздвину твои ягодицы и войду'
+        'Раздвинь мою попку и войди в дырочку...',
+        'Я уже смазал свою попку, входи глубже...',
+        'Трахай мою попку жестко, разорви меня...',
+        'Моя попка узкая, но для тебя я расслаблюсь...'
     ],
     'кончить': [
-        'Кончай мне на лицо, грязная девочка',
-        'Я кончаю глубоко в тебя, чувствуешь как тепло?',
-        'Да, да, кончай, залей меня',
-        'Я кончаю на твои сиськи',
-        'Я кончаю тебе в рот, глотай все до капли'
+        'Кончи в мою попку, залей меня спермой...',
+        'Я кончаю на твой член, чувствуешь как горячо...',
+        'Кончи мне в рот, я все проглочу...',
+        'Мы кончаем вместе, да, еще, глубже...'
     ],
-    'грудь': [
-        'Сожми свои сиськи вокруг моего члена, сделай райт джоб',
-        'Дай я пососу твои соски, пока трахаю тебя',
-        'Какие соски твердые, возбудилась да?',
-        'Твоя грудь создана для моего члена',
-        'Я кончу тебе между сисек'
-    ],
-    'рот': [
-        'Открой рот шире, я залью тебе глотку спермой',
-        'Соси аккуратнее, зубами не задень',
-        'Глубже бери, учись соснуть',
-        'Работай язычком, как будто это мой член',
-        'Возьми мой член в рот'
-    ],
-    'клитор': [
-        'Я нажимаю на твой клитор большим пальцем и тру кругами...',
-        'Твой клитор твердый, я беру его в рот и посасываю...',
-        'Я дрочу твой клитор языком, пока ты кончаешь...'
-    ],
-    'яйца': [
-        'Я лижу твои яйца, потом беру их в рот целиком...',
-        'Твои яйца такие тяжелые, я массирую их рукой...',
-        'Я кусаю твои яйца, не больно, а приятно...'
-    ],
-    'стоп': [
-        'Ладно, останавливаем игру. Если захочешь продолжить - просто напиши',
-        'Окей, диалог остановлен. Для продолжения просто напиши что-нибудь',
-        'Как скажешь, останавливаю. Пиши если захочешь продолжить'
+    'сосать': [
+        'Я беру твой член в рот и сосу до конца...',
+        'Соси мой член, нежно, язычком по головке...',
+        'Мы сосем друг другу, это так возбуждающе...'
     ]
 }
 
-# Ответы для девушки
+lesbian_responses = {
+    'привет': [
+        'Привет, моя сладкая. Я уже мокрая...',
+        'Здарова, киска. Хочешь попробовать меня?',
+        'Привет, я голая, трогаю себя пальчиком...',
+        'Ооо, привет, моя писька ждет тебя...'
+    ],
+    'как дела': [
+        'Мокренько, пальчик в киске, тебя жду...',
+        'Хорошо, только клитор хочет ласки...',
+        'Возбужденная, трусь о подушку...',
+        'Отлично, трусики уже сняла...'
+    ],
+    'киска': [
+        'Полижи мою киску, я такая мокрая...',
+        'Введи пальчики в мою киску, глубже...',
+        'Я трусь клитором о твою киску...',
+        'Моя киска пульсирует, хочу тебя...'
+    ],
+    'клитор': [
+        'Полижи мой клитор, он такой чувствительный...',
+        'Я тру клитор о твой пальчик...',
+        'Массируй мой клитор язычком, я кончаю...'
+    ],
+    'палец': [
+        'Введи пальцы в меня, два сразу...',
+        'Я массирую твою киску пальцами...',
+        'Пальцы внутри меня, я почти кончаю...'
+    ],
+    'кончить': [
+        'Мы кончаем вместе, обнимая друг друга...',
+        'Я кончаю на твои пальцы, не останавливайся...',
+        'Кончи в меня, залей мою киску...'
+    ]
+}
+
+# Добавляем новые словари в общий список
 girl_responses = {
     'привет': [
         'Ооо, привет, мой сладкий. Соскучился по моей киске?',
         'Привет, изголодавшийся. Готов поиграть?',
         'Ну привет, я уже разделась, если что)',
-        'Приветик, моя писька уже мокрая',
-        'Привет, я тут пальчиком себя трогаю, думаю о тебе...'
+        'Приветик, моя писька уже мокрая'
     ],
     'как дела': [
         'Мокренько... особенно когда читаю твои сообщения',
         'Стою тут голая, жду пока меня трахнут, а ты спрашиваешь "как дела"?',
         'Возбужденная, жду твоего члена',
-        'Трусики уже сняла, так что дела отлично',
-        'Киска пульсирует, хочу тебя внутрь...'
+        'Трусики уже сняла, так что дела отлично'
     ],
     'секс': [
         'Хочу, чтобы твой член был во мне прямо сейчас...',
         'Представь, как я скачу на тебе. Уже кончаешь?',
         'Жестко, глубоко и без презерватива',
-        'Выеби меня так, чтобы я кричала',
-        'Трахни меня в киску, потом в попку, потом в ротик...'
+        'Выеби меня так, чтобы я кричала'
     ],
     'член': [
         'Оближи его для меня, а потом войди в мою мокрую киску',
         'Какой у тебя размер? Люблю, когда глубоко и больно',
-        'Хочу взять его в ротик и сосать',
-        'Дай я возьму твой член в рот и пососу до конца...',
-        'Твой член такой твердый, я хочу его в себя'
+        'Хочу взять его в ротик и сосать'
     ],
     'попа': [
         'Засунь его в мою попку, я сегодня хочу погорячее',
         'Оттрахай меня в попу, как последнюю шлюху',
-        'Моя попка сжата и ждет тебя',
-        'Я раздвигаю ягодицы, войди в мою дырочку...'
+        'Моя попка сжата и ждет тебя'
     ],
     'кончить': [
         'Кончай в меня... залей мою матку своей спермой',
         'Я хочу чувствовать, как ты пульсируешь внутри меня',
-        'На лицо кончи, я открою ротик',
-        'Я кончаю от твоего члена, глубже, еще глубже...'
-    ],
-    'клитор': [
-        'Я тру свой клитор о твой член, пока ты во мне...',
-        'Полижи мой клитор, он такой чувствительный...',
-        'Я кончаю, когда ты трогаешь мой клитор...'
-    ],
-    'стоп': [
-        'Ладно, останавливаем игру. Если захочешь продолжить - просто напиши',
-        'Окей, диалог остановлен. Для продолжения просто напиши что-нибудь',
-        'Как скажешь, останавливаю. Пиши если захочешь продолжить'
+        'На лицо кончи, я открою ротик'
     ]
 }
 
-# Универсальные ответы (если ключевое слово не найдено)
+boy_responses = {
+    'привет': [
+        'Здарова, шлюшка. Я уже встал на тебя, смотрю.',
+        'Привет, киска. Давно тебя не драли?',
+        'Привет, раздвигай ножки',
+        'Здарова, хочешь мой член?'
+    ],
+    'как дела': [
+        'Стояк уже час, как думаешь, как дела?',
+        'Член в руке, представляю как трахаю тебя',
+        'Хорошо, только яйца болят, спустить бы',
+        'Возбужденный, жду когда ты отсосешь'
+    ],
+    'секс': [
+        'Сейчас бы завалить тебя на кровать и иметь жестко',
+        'Я трахну тебя так, что ноги будут дрожать',
+        'Выебу тебя во все дыры',
+        'Жесткий секс, глубокие выпады'
+    ],
+    'член': [
+        'Соси его глубже, не стесняйся, удавись немного',
+        'Хочешь попробовать мой член? Он сладкий, когда с моей спермой',
+        'Какой у тебя ротик, сейчас я его трахну'
+    ],
+    'попа': [
+        'Раздвинь свои булочки, я вхожу',
+        'Какая у тебя упругая попка, сейчас я её отшлепаю',
+        'Покажи свою дырочку, я войду туда'
+    ],
+    'кончить': [
+        'Кончай мне на лицо, грязная девочка',
+        'Я кончаю глубоко в тебя, чувствуешь как тепло?',
+        'Я кончаю на твои сиськи'
+    ]
+}
+
+# Универсальные ответы
 girl_fallback = [
     'Хочу тебя прямо сейчас...',
     'Моя киска мокреет от твоих слов',
     'Раздвигаю ножки и жду тебя',
-    'Я уже вся теку, продолжай',
-    'Твои слова возбуждают меня, я трогаю себя...'
+    'Я уже вся теку, продолжай'
 ]
 
 boy_fallback = [
@@ -241,38 +212,194 @@ boy_fallback = [
     'Я уже готов войти в тебя',
     'Еще, не останавливайся',
     'Давай, раздвигай шире',
-    'Я хочу кончить на тебя',
-    'Мой член твердеет от каждого твоего слова...'
+    'Я хочу кончить на тебя'
 ]
 
-# ==================== НОВАЯ ФУНКЦИЯ ДЛЯ СЕКСА ====================
+gay_fallback = [
+    'Войди в мою попку...',
+    'Я хочу твой член в себе...',
+    'Соси меня, я люблю это...',
+    'Трахай меня жестко...'
+]
+
+lesbian_fallback = [
+    'Я мокрая для тебя...',
+    'Пальчики в моей киске...',
+    'Поцелуй мой клитор...',
+    'Я кончаю от твоих рук...'
+]
+
+# ==================== ФУНКЦИИ ДЛЯ ЧАТА ====================
+def get_user_gender(user_id):
+    """Определяет пол пользователя по выбранному персонажу"""
+    char = user_character.get(user_id, 'unknown')
+    if char in ['boy', 'gay']:
+        return 'male'
+    elif char in ['girl', 'lesbian']:
+        return 'female'
+    return 'unknown'
+
+def add_to_chat(user_id, username, room):
+    """Добавляет пользователя в комнату чата"""
+    # Удаляем из всех комнат сначала
+    for r in chat_users:
+        if user_id in chat_users[r]:
+            del chat_users[r][user_id]
+    
+    # Добавляем в новую комнату
+    gender = get_user_gender(user_id)
+    chat_users[room][user_id] = {
+        'username': username,
+        'gender': gender,
+        'joined': time.time()
+    }
+    
+    # Уведомление в чат
+    welcome_msg = f"👤 Пользователь {username} присоединился к чату!"
+    chat_history[room].append({
+        'type': 'system',
+        'text': welcome_msg,
+        'time': datetime.now().strftime("%H:%M")
+    })
+    
+    return True
+
+def remove_from_chat(user_id):
+    """Удаляет пользователя из всех чатов"""
+    for room in chat_users:
+        if user_id in chat_users[room]:
+            username = chat_users[room][user_id]['username']
+            del chat_users[room][user_id]
+            
+            # Уведомление
+            leave_msg = f"👋 Пользователь {username} покинул чат"
+            chat_history[room].append({
+                'type': 'system',
+                'text': leave_msg,
+                'time': datetime.now().strftime("%H:%M")
+            })
+            return room
+
+def broadcast_to_room(room, user_id, message_text, message_type='text', file_id=None):
+    """Отправляет сообщение всем в комнате"""
+    sender = chat_users[room].get(user_id, {})
+    if not sender:
+        return False
+    
+    username = sender['username']
+    gender_emoji = '👨' if sender['gender'] == 'male' else '👩' if sender['gender'] == 'female' else '👤'
+    
+    # Сохраняем в историю
+    msg_data = {
+        'type': message_type,
+        'user': username,
+        'gender': sender['gender'],
+        'time': datetime.now().strftime("%H:%M"),
+        'text': message_text if message_type == 'text' else None,
+        'file_id': file_id
+    }
+    chat_history[room].append(msg_data)
+    
+    # Ограничиваем историю до 50 сообщений
+    if len(chat_history[room]) > 50:
+        chat_history[room] = chat_history[room][-50:]
+    
+    # Рассылаем всем в комнате
+    for uid in chat_users[room]:
+        if uid != user_id:  # Не отправляем себе
+            try:
+                if message_type == 'text':
+                    bot.send_message(
+                        uid, 
+                        f"{gender_emoji} [{msg_data['time']}] {username}: {message_text}"
+                    )
+                elif message_type == 'photo':
+                    bot.send_photo(
+                        uid, 
+                        file_id,
+                        caption=f"{gender_emoji} [{msg_data['time']}] {username} отправил фото"
+                    )
+                elif message_type == 'video':
+                    bot.send_video(
+                        uid, 
+                        file_id,
+                        caption=f"{gender_emoji} [{msg_data['time']}] {username} отправил видео"
+                    )
+                elif message_type == 'voice':
+                    bot.send_voice(
+                        uid, 
+                        file_id,
+                        caption=f"{gender_emoji} [{msg_data['time']}] {username} отправил голосовое"
+                    )
+            except:
+                pass
+    
+    return True
+
+# ==================== ФУНКЦИИ ДЛЯ СЕКСА ====================
 def get_sex_action(character, action_type):
     """Возвращает случайное грязное действие"""
     if character == 'boy':
-        actions_dict = sex_actions['male']
-    else:
-        actions_dict = sex_actions['female']
+        # Для парня с девушкой
+        actions = {
+            'член': sex_actions['male']['член'],
+            'палец': sex_actions['male']['палец'],
+            'язык': sex_actions['male']['язык'],
+            'рак': sex_actions['male']['рак'],
+            'сосать': sex_actions['male']['сосать'],
+            'кончить': sex_actions['male']['кончить']
+        }
+    elif character == 'gay':
+        # Для гея
+        actions = {
+            'член': sex_actions['male']['член'],
+            'попа': sex_actions['male']['попа'],
+            'сосать': sex_actions['male']['сосать'],
+            'кончить': sex_actions['male']['кончить']
+        }
+    elif character == 'lesbian':
+        # Для лесбиянки
+        actions = {
+            'киска': sex_actions['female']['киска'],
+            'клитор': sex_actions['female']['клитор'],
+            'палец': sex_actions['female']['палец'],
+            'язык': sex_actions['female']['язык'],
+            'кончить': sex_actions['female']['кончить']
+        }
+    else:  # girl
+        actions = {
+            'киска': sex_actions['female']['киска'],
+            'клитор': sex_actions['female']['клитор'],
+            'сосать': sex_actions['female']['сосать'],
+            'кончить': sex_actions['female']['кончить']
+        }
     
-    if action_type in actions_dict:
-        return random.choice(actions_dict[action_type])
+    if action_type in actions:
+        return random.choice(actions[action_type])
     return None
 
 def update_arousal(chat_id):
     """Обновляет уровень возбуждения"""
+    arousal_levels = [
+        "😈 Ты только начинаешь возбуждаться...",
+        "🔥 Уже горячо, тело горит...",
+        "💦 Ты весь мокрый, еще немного...",
+        "🌊 Ты на грани, еще чуть-чуть...",
+        "💥 ТЫ КОНЧАЕШЬ! Сильно и глубоко!"
+    ]
+    
     if chat_id not in user_arousal:
         user_arousal[chat_id] = {'level': 0, 'actions': []}
     
-    # Увеличиваем уровень
     user_arousal[chat_id]['level'] += random.randint(1, 3)
     
-    # Если уровень зашкаливает - сбрасываем
     if user_arousal[chat_id]['level'] >= len(arousal_levels):
         user_arousal[chat_id]['level'] = 0
         return "💦 ТЫ КОНЧИЛ! Офигенно! Давай еще?"
     
     return arousal_levels[user_arousal[chat_id]['level']]
 
-# ==================== ФУНКЦИИ ====================
+# ==================== ОСНОВНЫЕ ФУНКЦИИ ====================
 def get_keywords(text):
     """Извлекает ключевые слова из текста"""
     text = text.lower()
@@ -280,34 +407,29 @@ def get_keywords(text):
     return words
 
 def get_response(chat_id, message_text):
-    """Получает ответ на основе выбранного персонажа и текста"""
+    """Получает ответ на основе выбранного персонажа"""
     character = user_character.get(chat_id, 'girl')
     
+    # Выбираем словарь
     if character == 'girl':
         responses_dict = girl_responses
         fallback = girl_fallback
-    else:
+    elif character == 'boy':
         responses_dict = boy_responses
         fallback = boy_fallback
+    elif character == 'gay':
+        responses_dict = gay_responses
+        fallback = gay_fallback
+    elif character == 'lesbian':
+        responses_dict = lesbian_responses
+        fallback = lesbian_fallback
+    else:
+        responses_dict = girl_responses
+        fallback = girl_fallback
     
     words = get_keywords(message_text)
     
-    # Сначала проверяем секс-действия
-    for word in words:
-        if character == 'boy':
-            if word in ['член', 'палец', 'язык', 'рак', 'сосать', 'кончить', 'клитор', 'яйца']:
-                action = get_sex_action(character, word)
-                if action:
-                    arousal_msg = update_arousal(chat_id)
-                    return f"{action}\n\n{arousal_msg}"
-        else:
-            if word in ['киска', 'сосать', 'палец', 'раком', 'кончить', 'клитор']:
-                action = get_sex_action(character, word)
-                if action:
-                    arousal_msg = update_arousal(chat_id)
-                    return f"{action}\n\n{arousal_msg}"
-    
-    # Если не секс-действие - обычные ответы
+    # Проверяем слова
     for word in words:
         if word in responses_dict:
             return random.choice(responses_dict[word])
@@ -321,205 +443,316 @@ def start(message):
     
     welcome_text = (
         "🔞 *ДОБРО ПОЖАЛОВАТЬ В МИР РАЗВРАТА* 🔞\n\n"
-        "🔥 *НОВАЯ МЕГА ПОШЛАЯ ФУНКЦИЯ:*\n"
-        "• Виртуальный секс с подсчетом возбуждения\n"
-        "• 20+ грязных действий\n"
-        "• Уровни от возбуждения до кончая\n\n"
+        "🎮 *Режимы:*\n"
+        "1️⃣ Виртуальный секс (4 персонажа)\n"
+        "2️⃣ ОНЛАЙН ЧАТ (анонимный)\n\n"
         "*Команды:*\n"
-        "/start - Начать и выбрать персонажа\n"
-        "/stop - Остановить диалог\n"
-        "/sex - Начать виртуальный секс\n"
-        "/arousal - Проверить уровень возбуждения\n"
-        "/change - Сменить персонажа\n"
-        "/help - Помощь\n\n"
-        "*Выбери с кем хочешь общаться:*"
+        "/sex - Выбрать для виртуального секса\n"
+        "/chat - Войти в онлайн чат\n"
+        "/stop - Выйти отовсюду\n"
+        "/help - Помощь"
     )
     
     markup = InlineKeyboardMarkup()
-    btn_girl = InlineKeyboardButton("💋 Развратная девушка", callback_data="char_girl")
-    btn_boy = InlineKeyboardButton("🍆 Пошлый парень", callback_data="char_boy")
-    markup.add(btn_girl, btn_boy)
+    btn_sex = InlineKeyboardButton("🎮 Виртуальный секс", callback_data="mode_sex")
+    btn_chat = InlineKeyboardButton("💬 Онлайн чат", callback_data="mode_chat")
+    markup.add(btn_sex, btn_chat)
     
     bot.send_message(chat_id, welcome_text, parse_mode="Markdown", reply_markup=markup)
-
-@bot.message_handler(commands=['sex'])
-def sex_command(message):
-    """Команда для начала виртуального секса"""
-    chat_id = message.chat.id
-    
-    if chat_id not in user_character:
-        bot.send_message(chat_id, "❌ Сначала выбери персонажа! /start")
-        return
-    
-    character = user_character[chat_id]
-    
-    sex_text = (
-        "🔥 *НАЧИНАЕМ ВИРТУАЛЬНЫЙ СЕКС* 🔥\n\n"
-        "Пиши действия:\n"
-        "• член, палец, язык, рак, сосать, кончить, клитор, яйца\n"
-        "• киска, попка, грудь\n\n"
-        "Чем больше пишешь - тем выше возбуждение!\n"
-        "Дойди до 5 уровня и кончи!"
-    )
-    
-    # Сбрасываем возбуждение
-    user_arousal[chat_id] = {'level': 0, 'actions': []}
-    
-    bot.send_message(chat_id, sex_text, parse_mode="Markdown")
-
-@bot.message_handler(commands=['arousal'])
-def arousal_command(message):
-    """Проверка уровня возбуждения"""
-    chat_id = message.chat.id
-    
-    if chat_id not in user_arousal:
-        bot.send_message(chat_id, "❌ У тебя нет активного секса. Напиши /sex")
-        return
-    
-    level = user_arousal[chat_id]['level']
-    if level >= len(arousal_levels):
-        level = 0
-    
-    bot.send_message(
-        chat_id, 
-        f"🔥 Твой уровень возбуждения: {level}/5\n{arousal_levels[level]}"
-    )
-
-@bot.message_handler(commands=['stop'])
-def stop_dialog(message):
-    chat_id = message.chat.id
-    
-    if chat_id in user_character:
-        del user_character[chat_id]
-        if chat_id in user_arousal:
-            del user_arousal[chat_id]
-        
-        stop_text = (
-            "⏸️ *Диалог остановлен*\n\n"
-            "Ты вышел из развратного чата.\n"
-            "Чтобы начать заново, напиши /start"
-        )
-        bot.send_message(chat_id, stop_text, parse_mode="Markdown")
-    else:
-        bot.send_message(
-            chat_id, 
-            "❌ У тебя нет активного диалога. Напиши /start чтобы начать"
-        )
-
-@bot.message_handler(commands=['change'])
-def change_character(message):
-    chat_id = message.chat.id
-    
-    markup = InlineKeyboardMarkup()
-    btn_girl = InlineKeyboardButton("💋 Развратная девушка", callback_data="char_girl")
-    btn_boy = InlineKeyboardButton("🍆 Пошлый парень", callback_data="char_boy")
-    markup.add(btn_girl, btn_boy)
-    
-    bot.send_message(
-        chat_id,
-        "🔄 *Смени персонажа:*\nВыбери с кем хочешь общаться дальше:",
-        parse_mode="Markdown",
-        reply_markup=markup
-    )
-
-@bot.message_handler(commands=['help'])
-def help_command(message):
-    chat_id = message.chat.id
-    help_text = (
-        "🔞 *Команды бота:*\n"
-        "/start - Начать и выбрать персонажа\n"
-        "/sex - Начать виртуальный секс (МЕГА ПОШЛАЯ ФУНКЦИЯ)\n"
-        "/arousal - Проверить уровень возбуждения\n"
-        "/stop - Остановить диалог\n"
-        "/change - Сменить персонажа\n"
-        "/help - Показать это сообщение\n\n"
-        "*Секс-команды:*\n"
-        "• член, палец, язык, рак, сосать, кончить\n"
-        "• клитор, яйца, киска, попка, грудь\n\n"
-        "*Как работает:*\n"
-        "1. Напиши /sex\n"
-        "2. Пиши действия (член, киска и т.д.)\n"
-        "3. Бот описывает процесс и повышает возбуждение\n"
-        "4. На 5 уровне ты кончаешь!"
-    )
-    bot.send_message(chat_id, help_text, parse_mode="Markdown")
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_handler(call):
     chat_id = call.message.chat.id
     message_id = call.message.message_id
     
-    if call.data == "char_girl":
-        user_character[chat_id] = 'girl'
+    # ===== ВЫБОР РЕЖИМА =====
+    if call.data == "mode_sex":
+        markup = InlineKeyboardMarkup()
+        btn_girl = InlineKeyboardButton("💋 Девушка", callback_data="char_girl")
+        btn_boy = InlineKeyboardButton("🍆 Парень", callback_data="char_boy")
+        btn_gay = InlineKeyboardButton("🏳️‍🌈 Гей", callback_data="char_gay")
+        btn_les = InlineKeyboardButton("👩‍❤️‍👩 Лесбиянка", callback_data="char_lesbian")
+        btn_back = InlineKeyboardButton("🔙 Назад", callback_data="back_to_start")
+        markup.add(btn_girl, btn_boy)
+        markup.add(btn_gay, btn_les)
+        markup.add(btn_back)
+        
         bot.edit_message_text(
-            "✅ Ты выбрал *Развратную девушку*\n"
-            "Она горяча, игрива и всегда готова.\n\n"
-            "💡 *Новая функция:* /sex - виртуальный секс\n"
-            "💡 *Чтобы остановить диалог, напиши /stop*",
+            "🎮 *Выбери персонажа для виртуального секса:*",
             chat_id,
             message_id,
-            parse_mode="Markdown"
+            parse_mode="Markdown",
+            reply_markup=markup
         )
     
-    elif call.data == "char_boy":
-        user_character[chat_id] = 'boy'
-        bot.edit_message_text(
-            "✅ Ты выбрал *Пошлого парня*\n"
-            "Он груб, доминантен и знает как заставить тебя кончить.\n\n"
-            "💡 *Новая функция:* /sex - виртуальный секс\n"
-            "💡 *Чтобы остановить диалог, напиши /stop*",
-            chat_id,
-            message_id,
-            parse_mode="Markdown"
-        )
+    elif call.data == "mode_chat":
+        show_chat_rooms(chat_id, message_id)
+    
+    elif call.data == "back_to_start":
+        start(call.message)
+    
+    # ===== ВЫБОР ПЕРСОНАЖА =====
+    elif call.data in ["char_girl", "char_boy", "char_gay", "char_lesbian"]:
+        if call.data == "char_girl":
+            user_character[chat_id] = 'girl'
+            text = "✅ Ты выбрал *Девушку*\n💋 Развратная, готовая на всё\n\n/sex - начать виртуальный секс\n/chat - в чат"
+        elif call.data == "char_boy":
+            user_character[chat_id] = 'boy'
+            text = "✅ Ты выбрал *Парня*\n🍆 Грубый, пошлый, готовый трахать\n\n/sex - начать виртуальный секс\n/chat - в чат"
+        elif call.data == "char_gay":
+            user_character[chat_id] = 'gay'
+            text = "✅ Ты выбрал *Гей*\n🏳️‍🌈 Горячий, готовый на всё с парнями\n\n/sex - начать виртуальный секс\n/chat - в чат"
+        elif call.data == "char_lesbian":
+            user_character[chat_id] = 'lesbian'
+            text = "✅ Ты выбрала *Лесбиянку*\n👩‍❤️‍👩 Нежная, страстная, любит девушек\n\n/sex - начать виртуальный секс\n/chat - в чат"
+        
+        bot.edit_message_text(text, chat_id, message_id, parse_mode="Markdown")
+    
+    # ===== ВЫБОР КОМНАТЫ ЧАТА =====
+    elif call.data.startswith("room_"):
+        room = call.data.replace("room_", "")
+        username = call.from_user.username or f"User_{chat_id % 10000}"
+        
+        if add_to_chat(chat_id, username, room):
+            room_name = CHAT_ROOMS[room]
+            text = f"✅ Ты вошел в *{room_name}*\n\n👥 В чате: {len(chat_users[room])} чел.\n\nПиши сообщения, отправляй фото/видео!\n/leave - выйти из чата"
+            
+            bot.edit_message_text(text, chat_id, message_id, parse_mode="Markdown")
+            
+            # Показываем последние сообщения
+            show_recent_messages(chat_id, room)
+    
+    elif call.data == "chat_back":
+        show_chat_rooms(chat_id, message_id)
 
-@bot.message_handler(func=lambda message: True)
-def handle_message(message):
+def show_chat_rooms(chat_id, message_id):
+    """Показывает комнаты чата"""
+    markup = InlineKeyboardMarkup()
+    
+    for room_id, room_name in CHAT_ROOMS.items():
+        count = len(chat_users[room_id])
+        btn = InlineKeyboardButton(
+            f"{room_name} (👥 {count})", 
+            callback_data=f"room_{room_id}"
+        )
+        markup.add(btn)
+    
+    btn_back = InlineKeyboardButton("🔙 Назад", callback_data="back_to_start")
+    markup.add(btn_back)
+    
+    bot.edit_message_text(
+        "💬 *Выбери комнату для анонимного чата:*\n\n"
+        "• Можно писать текст\n"
+        "• Отправлять фото/видео\n"
+        "• Голосовые сообщения\n"
+        "• Полная анонимность",
+        chat_id,
+        message_id,
+        parse_mode="Markdown",
+        reply_markup=markup
+    )
+
+def show_recent_messages(chat_id, room):
+    """Показывает последние сообщения в чате"""
+    history = chat_history[room][-10:]  # Последние 10
+    if history:
+        bot.send_message(chat_id, "📜 *Последние сообщения:*", parse_mode="Markdown")
+        for msg in history[-5:]:  # Показываем только 5 последних
+            if msg['type'] == 'system':
+                bot.send_message(chat_id, f"⚙️ [{msg['time']}] {msg['text']}")
+            elif msg['type'] == 'text':
+                gender_emoji = '👨' if msg['gender'] == 'male' else '👩' if msg['gender'] == 'female' else '👤'
+                bot.send_message(chat_id, f"{gender_emoji} [{msg['time']}] {msg['user']}: {msg['text']}")
+
+@bot.message_handler(commands=['sex'])
+def sex_command(message):
     chat_id = message.chat.id
     
     if chat_id not in user_character:
+        bot.send_message(chat_id, "❌ Сначала выбери персонажа!\n/start → Виртуальный секс")
+        return
+    
+    character = user_character[chat_id]
+    names = {'girl': 'Девушка', 'boy': 'Парень', 'gay': 'Гей', 'lesbian': 'Лесбиянка'}
+    
+    sex_text = (
+        f"🔥 *Виртуальный секс с {names[character]}* 🔥\n\n"
+        "Пиши действия:\n"
+    )
+    
+    if character in ['girl', 'lesbian']:
+        sex_text += "• киска, клитор, палец, язык, сосать, кончить\n"
+    else:
+        sex_text += "• член, попа, палец, язык, рак, сосать, кончить\n"
+    
+    sex_text += "\nЧем больше пишешь - тем выше возбуждение!\n/arousal - проверить уровень"
+    
+    user_arousal[chat_id] = {'level': 0, 'actions': []}
+    bot.send_message(chat_id, sex_text, parse_mode="Markdown")
+
+@bot.message_handler(commands=['chat'])
+def chat_command(message):
+    chat_id = message.chat.id
+    
+    if chat_id not in user_character:
+        bot.send_message(chat_id, "❌ Сначала выбери персонажа!\n/start → Выбрать персонажа")
+        return
+    
+    show_chat_rooms(chat_id, None)
+
+@bot.message_handler(commands=['leave'])
+def leave_chat(message):
+    chat_id = message.chat.id
+    
+    room = remove_from_chat(chat_id)
+    if room:
+        bot.send_message(chat_id, "✅ Ты вышел из чата.\n/chat - войти снова")
+    else:
+        bot.send_message(chat_id, "❌ Ты не в чате.")
+
+@bot.message_handler(commands=['arousal'])
+def arousal_command(message):
+    chat_id = message.chat.id
+    
+    if chat_id not in user_arousal:
+        bot.send_message(chat_id, "❌ Нет активного секса. Напиши /sex")
+        return
+    
+    level = user_arousal[chat_id]['level']
+    arousal_levels = ["😈", "🔥", "💦", "🌊", "💥"]
+    level_text = [
+        "только начинаешь",
+        "уже горячо",
+        "весь мокрый",
+        "на грани",
+        "КОНЧАЕШЬ"
+    ]
+    
+    current_level = min(level, 4)
+    bot.send_message(
+        chat_id,
+        f"📊 *Уровень возбуждения:* {level}/5\n{arousal_levels[current_level]} {level_text[current_level]}"
+    )
+
+@bot.message_handler(commands=['stop'])
+def stop_dialog(message):
+    chat_id = message.chat.id
+    
+    # Удаляем из чата если был
+    remove_from_chat(chat_id)
+    
+    # Очищаем данные
+    if chat_id in user_character:
+        del user_character[chat_id]
+    if chat_id in user_arousal:
+        del user_arousal[chat_id]
+    
+    bot.send_message(
+        chat_id,
+        "⏸️ *Диалог остановлен*\nЧтобы начать заново, напиши /start",
+        parse_mode="Markdown"
+    )
+
+@bot.message_handler(commands=['help'])
+def help_command(message):
+    help_text = (
+        "🔞 *ПОМОЩЬ*\n\n"
+        "*Основные команды:*\n"
+        "/start - Главное меню\n"
+        "/sex - Виртуальный секс\n"
+        "/chat - Онлайн чат\n"
+        "/leave - Выйти из чата\n"
+        "/arousal - Уровень возбуждения\n"
+        "/stop - Выйти отовсюду\n\n"
+        "*В чате можно:*\n"
+        "• Писать текст\n"
+        "• Отправлять фото\n"
+        "• Отправлять видео\n"
+        "• Голосовые сообщения\n\n"
+        "*Секс-команды:*\n"
+        "Для девушек: киска, клитор, палец, язык, сосать, кончить\n"
+        "Для парней: член, попа, палец, язык, рак, сосать, кончить\n"
+        "Для геев: член, попа, сосать, кончить\n"
+        "Для лесбиянок: киска, клитор, палец, язык, кончить"
+    )
+    bot.send_message(message.chat.id, help_text, parse_mode="Markdown")
+
+# ==================== ОБРАБОТКА СООБЩЕНИЙ ====================
+@bot.message_handler(content_types=['text'])
+def handle_text(message):
+    chat_id = message.chat.id
+    
+    # Проверяем, в чате ли пользователь
+    for room, users in chat_users.items():
+        if chat_id in users:
+            # Отправляем сообщение в комнату
+            broadcast_to_room(room, chat_id, message.text)
+            return
+    
+    # Если не в чате - виртуальный секс
+    if chat_id in user_character:
         if message.text.lower() in ['стоп', 'хватит', 'stop']:
-            bot.send_message(
-                chat_id,
-                "❌ У тебя нет активного диалога. Напиши /start чтобы начать"
-            )
+            stop_dialog(message)
             return
         
-        bot.send_message(
-            chat_id,
-            "❌ Сначала выбери персонажа!\nНапиши /start для выбора."
-        )
-        return
-    
-    if message.text.lower() in ['стоп', 'хватит', 'stop']:
-        character = user_character[chat_id]
-        response = get_response(chat_id, 'стоп')
-        
-        emoji = '💋' if character == 'girl' else '🍆'
+        response = get_response(chat_id, message.text)
+        emojis = {'girl': '💋', 'boy': '🍆', 'gay': '🏳️‍🌈', 'lesbian': '👩‍❤️‍👩'}
+        emoji = emojis.get(user_character[chat_id], '💋')
         bot.send_message(chat_id, f"{emoji} {response}")
         
-        del user_character[chat_id]
-        if chat_id in user_arousal:
-            del user_arousal[chat_id]
-        
-        bot.send_message(
-            chat_id,
-            "⏸️ *Диалог остановлен*\nЧтобы начать заново, напиши /start",
-            parse_mode="Markdown"
-        )
-        return
+        # Обновляем возбуждение если есть секс-слова
+        words = get_keywords(message.text)
+        sex_words = ['член', 'киска', 'клитор', 'попа', 'сосать', 'кончить', 'палец', 'язык', 'рак']
+        if any(word in sex_words for word in words):
+            arousal_msg = update_arousal(chat_id)
+            bot.send_message(chat_id, f"🔥 {arousal_msg}")
+    else:
+        bot.send_message(chat_id, "❌ Напиши /start для начала")
+
+@bot.message_handler(content_types=['photo'])
+def handle_photo(message):
+    chat_id = message.chat.id
     
-    response = get_response(chat_id, message.text)
-    emoji = '💋' if user_character[chat_id] == 'girl' else '🍆'
-    bot.send_message(chat_id, f"{emoji} {response}")
+    for room, users in chat_users.items():
+        if chat_id in users:
+            file_id = message.photo[-1].file_id
+            broadcast_to_room(room, chat_id, None, 'photo', file_id)
+            return
+    
+    bot.send_message(chat_id, "❌ Ты не в чате. /chat чтобы войти")
+
+@bot.message_handler(content_types=['video'])
+def handle_video(message):
+    chat_id = message.chat.id
+    
+    for room, users in chat_users.items():
+        if chat_id in users:
+            file_id = message.video.file_id
+            broadcast_to_room(room, chat_id, None, 'video', file_id)
+            return
+    
+    bot.send_message(chat_id, "❌ Ты не в чате. /chat чтобы войти")
+
+@bot.message_handler(content_types=['voice'])
+def handle_voice(message):
+    chat_id = message.chat.id
+    
+    for room, users in chat_users.items():
+        if chat_id in users:
+            file_id = message.voice.file_id
+            broadcast_to_room(room, chat_id, None, 'voice', file_id)
+            return
+    
+    bot.send_message(chat_id, "❌ Ты не в чате. /chat чтобы войти")
 
 # ==================== ЗАПУСК ====================
 if __name__ == "__main__":
     print("=" * 60)
-    print("🔥 Бот ЗАПУЩЕН с МЕГА ПОШЛОЙ ФУНКЦИЕЙ!")
+    print("🔥 Бот ЗАПУЩЕН с МЕГА ЧАТОМ!")
     print("📝 Токен: 8442213004:AAFgM1lchfhZmh5SxzrumH9nCR2TQzvCEos")
-    print("👥 Персонажи: Девушка 💋 и Парень 🍆")
-    print("🎮 Новая функция: /sex - Виртуальный секс с уровнями возбуждения")
+    print("👥 Персонажи: Девушка 💋 | Парень 🍆 | Гей 🏳️‍🌈 | Лесби 👩‍❤️‍👩")
+    print("💬 Комнаты: Гей | Лесби | Смешанный | Общий")
+    print("🎮 Функции: Секс | Чат | Фото | Видео | Голосовые")
     print("🛑 Нажми Ctrl+C для остановки")
     print("=" * 60)
     
